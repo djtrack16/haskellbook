@@ -2,11 +2,17 @@
 {-# HLINT ignore "Use newtype instead of data" #-}
 --{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE QuasiQuotes #-}
+
 
 module ChapterEleven where
   import Data.Foldable (maximumBy)
   import qualified Data.List as L
-
+  import Data.Char (toUpper)
+  import NeatInterpolation
+  import Data.Text (Text)
+  --import Data.String.Interpolate (i)
+  
   data Doggies a =
     Husky a
     | Mastiff a
@@ -154,3 +160,28 @@ module ChapterEleven where
 
   fTwo :: Bool -> Quad -> Quad
   fTwo = undefined -- (4 ^ 4) ^ 2 = 256 ^ 2 = 65536
+
+  isSubsequenceOf :: (Eq a) => [a] -> [a] -> Bool
+  isSubsequenceOf [] _ = True
+  isSubsequenceOf (x:xs) [] = False
+  isSubsequenceOf xs'@(x:xs) (y:ys) =
+    if x == y
+    then isSubsequenceOf xs ys
+    else isSubsequenceOf xs' ys
+
+  capitalizeWords :: String -> [(String, String)]
+  capitalizeWords sentence = map tuple $ words sentence where
+    uppercaseWord w = toUpper (head w) : tail w
+    tuple w = (w, uppercaseWord w)
+  
+  data Expr =
+    Lit Integer
+    | Add Expr Expr deriving Show
+
+  eval :: Expr -> Integer
+  eval (Lit n) = n
+  eval (Add e e') = eval e + eval e'
+
+  printExpr :: Expr -> String
+  printExpr (Lit n)  = undefined -- [i|#{n}|] wow string interpolation in Haskell is a PITA
+  printExpr (Add e e') = printExpr e ++ " + " ++ printExpr e'
