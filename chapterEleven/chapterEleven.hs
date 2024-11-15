@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use newtype instead of data" #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+--{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 module ChapterEleven where
@@ -130,3 +130,27 @@ module ChapterEleven where
   groupedJamsByFruit :: [[JamJars]]
   groupedJamsByFruit = L.groupBy (\f f' -> fruit f == fruit f') allJams
 
+-- What is the CARDINALITY (unique inhabitants) of each type?
+  data Quad = One
+    | Two
+    | Three
+    | Four
+    deriving (Eq, Show)
+  -- how many different forms can this take?
+  eQuad :: Either Quad Quad
+  eQuad = undefined -- 4 + 4 = 8
+  
+  prodQuad :: (Quad, Quad)
+  prodQuad = undefined -- 4 * 4 = 16
+
+  funcQuad :: Quad -> Quad
+  funcQuad = undefined -- 4 ^ 4 = 256
+
+  prodTBool :: (Bool, Bool, Bool)
+  prodTBool = undefined -- 2 * 2 * 2 = 8
+
+  gTwo :: Bool -> Bool -> Bool
+  gTwo = undefined -- 2 ^ 2 ^ 2 = 2 ^ 3 = 8
+
+  fTwo :: Bool -> Quad -> Quad
+  fTwo = undefined -- (4 ^ 4) ^ 2 = 256 ^ 2 = 65536
