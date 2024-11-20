@@ -1,9 +1,13 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
 
 module FunctorExercise where
 
   import GHC.Arr
   import Data.Functor qualified as F
+  import Data.List.Class (ListItem())
+  import System.IO.Unsafe (unsafeFixIO)
   -- start from page 643
 {--
   Determine if a valid Functor can be written for the datatype provided.
@@ -85,5 +89,137 @@ module FunctorExercise where
     fmap f (Something b) = Something (f b)
     fmap _ (DeepBlue a c) = DeepBlue a c
 
+{--
+  Keeping in mind that it should result in a Functor that does the following:
+  Prelude> fmap (+1) (L 1 2 3)
+  L 2 2 4
+  Prelude> fmap (+1) (R 1 2 3)
+  R 1 3 3
+--}
+-- Solution:
+-- Change "More a b" to "More b a" OR
+-- Switch places of the "L" and "R" in the data constructor...
 
+  data More a b =
+    L b a b
+    | R a b a 
+    deriving (Eq, Show)
+  
+  instance Functor (More x) where
+    fmap f (L a b a') = L (f a) b (f a')
+    fmap f (R b a b') = R b (f a) b'
 
+{--
+Write Functor instances for the following datatypes.
+1. data Quant a b = Finance
+| Desk a | Bloor b
+2. No, it’s not interesting by itself.
+data K a b = Ka
+3. {-# LANGUAGE FlexibleInstances #-}
+newtype Flip f a b = Flip (f b a) deriving (Eq, Show)
+newtype K a b = Ka
+-- should remind you of an
+-- instance you've written before instance Functor (Flip K a) where
+fmap = undefined
+4. data EvilGoateeConst a b =
+GoatyConst b
+    -- You thought you'd escaped the goats
+    -- by now didn't you? Nope.
+CHAPTER16. FUNCTOR 645 No, it doesn’t do anything interesting. No magic here or in the
+previous exercise. If it works, you succeeded.
+5. Do you need something extra to make the instance work?
+data LiftItOut f a = LiftItOut (f a)
+6. data Parappa f g a = DaWrappa (f a) (g a)
+7. Don’t ask for more typeclass instances than you need. You can let GHC tell you what to do.
+data IgnoreOne f g a b = IgnoringSomething (f a) (g b)
+8. data Notorious g o a t = Notorious (g o) (g a) (g t)
+9. You’ll need to use recursion.
+data List a = Nil
+| Cons a (List a)
+10. A tree of goats forms a Goat-Lord, fearsome poly-creature.
+data GoatLord a = NoGoat
+| OneGoat a
+| MoreGoats (GoatLord a) (GoatLord a) (GoatLord a)
+    -- A VERITABLE HYDRA OF GOATS
+11. You’ll use an extra functor for this one, although your solution might do it monomorphically without using fmap.3
+data TalkToMe a = Halt
+| Print String a
+| Read (String -> a)
+--}
+
+  -- #1
+  data Quant a b = Finance
+    | Desk a
+    | Bloor b
+
+  instance Functor (Quant q) where
+    fmap _ Finance = Finance
+    fmap _ (Desk d) = Desk d
+    fmap f (Bloor b) = Bloor (f b)
+
+   -- #2
+  newtype K a b =
+    K a
+
+  instance Functor (K pair) where
+    fmap _ (K a) = K a
+
+  -- #3
+  newtype Flip f a b =
+    Flip (f b a)
+    deriving (Eq, Show)
+
+  instance Functor (Flip K a) where
+    fmap f (Flip g) = undefined--Flip (f (f g))
+
+  -- #4
+
+  data EvilGoateeConst a b =
+    GoatyConst b
+
+  instance Functor (EvilGoateeConst ab) where
+    fmap f (GoatyConst b) = GoatyConst $ f b
+  -- #5
+
+  data LiftItOut f a =
+    LiftItOut (f a)
+
+  instance Functor (LiftItOut f') where
+    fmap f (LiftItOut a') = undefined-- LiftItOut (f a')
+  -- #6
+
+  data Parappa f g a =
+    DaWrappa (f a) (g a)
+
+  instance Functor (Parappa t1 t2) where
+    fmap f (DaWrappa x y) = undefined--DaWrappa x (f y)-- LiftItOut (f a')
+  -- #7
+  -- #8
+
+  data Notorious g o a t =
+    Notorious (g o) (g a) (g t)
+
+  instance Functor (Notorious g o a) where
+    fmap :: (a2 -> b) -> Notorious g o a1 a2 -> Notorious g o a1 b
+    fmap f (Notorious go ga gt) = undefined --Notorious go ga (f . gt)
+  -- #9
+
+  data List a =
+    Nil
+    | Cons a (List a)
+
+  instance Functor List where
+    fmap _ Nil = Nil
+    fmap f (Cons a list) = Cons (f a) (fmap f list)
+  -- #10
+  data GoatLord a =
+    NoGoat
+    | OneGoat a
+    | MoreGoats (GoatLord a) (GoatLord a) (GoatLord a)
+
+  instance Functor GoatLord where
+    fmap :: (a -> b) -> GoatLord a -> GoatLord b
+    fmap _ NoGoat = NoGoat
+    fmap f (OneGoat a) = OneGoat (f a)
+    fmap f (MoreGoats g1 g2 g3) = MoreGoats (fmap f g1) (fmap f g2) (fmap f g3)
+  -- #11
