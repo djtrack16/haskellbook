@@ -169,8 +169,8 @@ data TalkToMe a = Halt
     Flip (f b a)
     deriving (Eq, Show)
 
-  instance Functor (Flip K a) where
-    fmap f (Flip g) = undefined--Flip (f (f g))
+  --instance Functor f => Functor (Flip f a) where
+   -- fmap f' (Flip g) = Flip (fmap f' g)
 
   -- #4
 
@@ -184,24 +184,30 @@ data TalkToMe a = Halt
   data LiftItOut f a =
     LiftItOut (f a)
 
-  instance Functor (LiftItOut f') where
-    fmap f (LiftItOut a') = undefined-- LiftItOut (f a')
+  instance Functor f => Functor (LiftItOut f) where
+    fmap f (LiftItOut fa) = LiftItOut (fmap f fa)
   -- #6
 
   data Parappa f g a =
     DaWrappa (f a) (g a)
 
-  instance Functor (Parappa t1 t2) where
-    fmap f (DaWrappa x y) = undefined--DaWrappa x (f y)-- LiftItOut (f a')
+  instance (Functor f, Functor g) => Functor (Parappa f g) where
+    fmap f (DaWrappa fa ga) = DaWrappa (fmap f fa) (fmap f ga)
   -- #7
+
+  data IgnoreOne f g a b =
+    IgnoringSomething (f a) (g b)
+
+  instance Functor g => Functor (IgnoreOne f g a) where
+    fmap f (IgnoringSomething fa gb) = IgnoringSomething fa (fmap f gb)
   -- #8
 
   data Notorious g o a t =
     Notorious (g o) (g a) (g t)
 
-  instance Functor (Notorious g o a) where
+  instance Functor g => Functor (Notorious g o a) where
     fmap :: (a2 -> b) -> Notorious g o a1 a2 -> Notorious g o a1 b
-    fmap f (Notorious go ga gt) = undefined --Notorious go ga (f . gt)
+    fmap f (Notorious go ga gt) = Notorious go ga (fmap f gt)
   -- #9
 
   data List a =
