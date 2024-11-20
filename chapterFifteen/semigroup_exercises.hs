@@ -8,6 +8,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# HLINT ignore "Redundant bracket" #-}
 {-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module SemigroupExercises where
 
@@ -177,21 +178,57 @@ module SemigroupExercises where
     (<>) y (Failure x) = (Failure x)
     (<>) (Failure x) _ = Failure x
     (<>) (Success x) (Success y) = Success (x S.<> y)
-  
+
   instance (Arbitrary a, Arbitrary b) => Arbitrary (Validation a b) where
     arbitrary = do
       z <- arbitrary
       y <- arbitrary
       elements [Failure y, Success z]
-  
-  type ValidationAssoc a b = Validation a b -> Validation a b -> Validation a b -> Bool
 
+  type ValidationAssoc a b = Validation a b -> Validation a b -> Validation a b -> Bool
+{--
   --newtype Combine a b = Combine { unCombine :: (a -> b) }
 
   newtype Combine a b = Combine
     { unCombine :: (a -> b) }
     --deriving (Eq, Show)
 
+  instance (Monoid a, Monoid b) => Monoid (Combine a b) where
+    --mempty :: (Monoid a, Monoid b) => Combine a b
+    mempty = Combine (const mempty)
+
+  instance (Semigroup a, Semigroup b) => S.Semigroup (Combine a b) where
+
+    --(<>) :: Combine a b -> Combine a b -> Combine a b
+    --(<>) f g = undefined
+    (<>) :: (Semigroup a, Semigroup b) => Combine a b -> Combine a b -> Combine a b
+    (<>) (Combine f) (Combine g) = Combine (\arg -> f arg S.<> g arg)
+    --let f = Combine $ \n -> S.Sum (n + 1)
+    --let g = Combine $ \n -> S.Sum (n - 1)
+    --putStrLn $ unCombine ( _ S.<> _) 0
+
+
+    --(<>) (BoolConj False) _ = BoolConj False
+    --(<>) _ (BoolConj False) = BoolConj False
+
+  type CombineAssoc a b = Combine a b -> Combine a b -> Combine a b -> Bool
+
+  -- newtype Comp a = Comp { unComp :: (a -> a) }
+
+  newtype Comp a =
+    Comp { unComp :: (a -> a) }
+
+  instance M.Monoid a => M.Monoid (Comp a) where
+    mempty :: M.Monoid a => Comp a
+    mempty = discard
+
+  instance S.Semigroup a => S.Semigroup (Comp a) where
+
+    (<>) :: Comp a -> Comp a -> Comp a
+    (<>) f g = f
+
+  type CompAssoc a b = Comp a -> Comp a -> Comp a -> Bool
+--}
   -- associativity, left identity, right identity
 
   semigroupAssoc :: (Eq m, S.Semigroup m) => m -> m -> m -> Bool
@@ -258,3 +295,6 @@ module SemigroupExercises where
     testBoolConj
     --testOr
     testValidation
+    --let f = Combine $ \n -> S.Sum (n + 1)
+    --let g = Combine $ \n -> S.Sum (n - 1)
+    --putStrLn $ unCombine ( _ S.<> _) 0
