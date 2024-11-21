@@ -6,8 +6,6 @@ module FunctorExercise where
 
   import GHC.Arr
   import Data.Functor qualified as F
-  import Data.List.Class (ListItem())
-  import System.IO.Unsafe (unsafeFixIO)
   -- start from page 643
 {--
   Determine if a valid Functor can be written for the datatype provided.
@@ -43,7 +41,7 @@ module FunctorExercise where
   instance Functor BoolAndSomethingElse where
     fmap f (False' a) = False' (f a)
     fmap f (True' a)  = True' (f a)
-  
+
   data BoolAndMaybeSomethingElse a =
     Falsish
     | Truish a
@@ -52,19 +50,24 @@ module FunctorExercise where
     fmap _ Falsish     = Falsish
     fmap f (Truish a)  = Truish (f a)
 {--
+  Not possible for both?
   newtype Mu f = InF
     { outF :: f (Mu f) }
-
-  instance Functor (Mu g) where
-    fmap f (InF a b) = Inf (f a) (InF $ f b)
+  
+  Error message : idk.. :|
+  • Couldn't match kind ‘* -> *’ with ‘*’
+    Expected kind ‘* -> *’, but ‘Mu’ has kind ‘(* -> *) -> *’
+    
+  instance Functor Mu  where
+    fmap f' (InF recurMu) = Inf (fmap f' recurMu)
 
   data D =
     D (Array Word Word) Int Int
 
   instance Functor D where
     fmap f (D tuple x y) = D tuple x (f y)
-
 --}
+
   -- Rearrange the arguments to the type constructor of the datatype so the Functor instance works.
   -- Two Solutions here:
   -- 1. Change "data Sum a b" to "data Sum b a" OR
@@ -77,7 +80,7 @@ module FunctorExercise where
     fmap _ (First a) = First a
     fmap f (Second b) = Second (f b)
 
-  
+
   -- Two Possible Solutions here:
   -- 1. Change "Company a b c" to "Company a c b" OR
   -- 2. Use "DeepBlue a c" instead of "DeepBlue a (f c)" and unapply f from "Something b"
@@ -102,9 +105,9 @@ module FunctorExercise where
 
   data More a b =
     L b a b
-    | R a b a 
+    | R a b a
     deriving (Eq, Show)
-  
+
   instance Functor (More x) where
     fmap f (L a b a') = L (f a) b (f a')
     fmap f (R b a b') = R b (f a) b'
@@ -168,9 +171,9 @@ data TalkToMe a = Halt
   newtype Flip f a b =
     Flip (f b a)
     deriving (Eq, Show)
-
-  --instance Functor f => Functor (Flip f a) where
-   -- fmap f' (Flip g) = Flip (fmap f' g)
+  -- Almost??.....
+  --instance Functor f => Functor (Flip f b) where
+   -- fmap f' (Flip fba) = Flip (fmap (f' . f) fba)
 
   -- #4
 
@@ -217,6 +220,7 @@ data TalkToMe a = Halt
   instance Functor List where
     fmap _ Nil = Nil
     fmap f (Cons a list) = Cons (f a) (fmap f list)
+
   -- #10
   data GoatLord a =
     NoGoat
@@ -228,4 +232,16 @@ data TalkToMe a = Halt
     fmap _ NoGoat = NoGoat
     fmap f (OneGoat a) = OneGoat (f a)
     fmap f (MoreGoats g1 g2 g3) = MoreGoats (fmap f g1) (fmap f g2) (fmap f g3)
+
   -- #11
+
+-- You’ll use an extra functor for this one, although your solution might do it
+-- monomorphically without using fmap.
+  data TalkToMe a = Halt
+    | Print String a
+    | Read (String -> a)
+
+  instance Functor TalkToMe where
+    fmap _ Halt = Halt
+    fmap f (Print str a) = Print str (f a)
+    fmap f (Read func) = Read (fmap f func)
