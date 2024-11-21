@@ -2,8 +2,7 @@ module ShortExercises where
 
   import Data.Functor
   import Control.Applicative
-  import Data.List (elemIndex)
-
+  import Data.List (elemIndex)  
 
   -- starting p 663
 {--
@@ -113,3 +112,17 @@ summed = sum $ (,) x y
     
     (<*>) :: Monoid a => Constant a (a1 -> b) -> Constant a a1 -> Constant a b
     (<*>) (Constant a) (Constant a') = Constant (a <> a') 
+
+--  Given the function and values provided, use (<$>) from Functor,
+-- (<*>) and pure from the Applicative typeclass to fill in missing
+-- bits of the broken code to make it work.
+-- const <$> Just "Hello" <*> "World"
+-- (,,,) Just 90 <*> Just 10 Just "Tierness" [1, 2, 3]
+
+-- #1
+  example1 :: Maybe String
+  example1 = const <$> Just "Hello" <*> (pure "World" :: Maybe String)
+-- #2
+
+  exercise2 :: Maybe (Integer, Integer, String, [Int])
+  exercise2 = (,,,) <$> Just 90 <*> Just 10 <*> Just "Tierness" <*> (pure [1, 2, 3] :: Maybe [Int])

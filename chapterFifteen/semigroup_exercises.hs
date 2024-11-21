@@ -8,7 +8,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# HLINT ignore "Redundant bracket" #-}
 {-# LANGUAGE MonoLocalBinds #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module SemigroupExercises where
 
