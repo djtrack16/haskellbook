@@ -78,5 +78,38 @@ summed = sum $ (,) x y
   summed :: Maybe Integer
   summed = fmap sum $ (,) <$> val1 <*> val2
 
-  -- Just 6 ... Just 5
+-- Write an Applicative instance for Identity.
+  newtype Identity a =
+    Identity a
+    deriving (Eq, Ord, Show)
 
+  instance Functor Identity where
+
+    fmap :: (a -> b) -> Identity a -> Identity b
+    fmap f (Identity a) = Identity (f a)
+  
+  instance Applicative Identity where
+
+    pure :: a -> Identity a
+    pure = Identity
+
+    (<*>) :: Identity (a -> b) -> Identity a -> Identity b
+    (<*>) (Identity f) (Identity a') = Identity (f a')
+
+-- Write an Applicative instance for Constant.
+  newtype Constant a b =
+    Constant { getConstant :: a }
+    deriving (Eq, Ord, Show)
+
+  instance Functor (Constant a) where
+
+    fmap :: (a2 -> b) -> Constant a1 a2 -> Constant a1 b
+    fmap _ (Constant a1) = Constant a1
+
+  instance Monoid a => Applicative (Constant a) where
+    
+    pure :: Monoid a => b -> Constant a b
+    pure b = Constant mempty
+    
+    (<*>) :: Monoid a => Constant a (a1 -> b) -> Constant a a1 -> Constant a b
+    (<*>) (Constant a) (Constant a') = Constant (a <> a') 
