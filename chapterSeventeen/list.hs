@@ -52,22 +52,7 @@ module List where
         (1, return ZipList' (Cons <$> arbitrary <*> arbitrary))
         ]
 
-    --arbitrary = frequency [ (1, return (ZipList' Nil)) , (1, return Twoo) ]
 {--
-
-instance Arbitrary a => Arbitrary (Tree a) where
-arbitrary = sized arbTree
-
-arbTree :: Arbitrary a => Int -> Gen (Tree a)
-arbTree 0 = do
-    a <- arbitrary
-    return $ Node a []
-arbTree n = do
-    (Positive m) <- arbitrary
-    let n' = n `div` (m + 1)
-    f <- replicateM m (arbTree n')
-    a <- arbitrary
-    return $ Node a f
 
 Implement the List Applicative. Writing a minimally complete Ap- plicative instance calls for
 writing the definitions of both pure and <*>. We’re going to provide a hint as well.
