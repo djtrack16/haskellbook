@@ -12,7 +12,8 @@ module List where
   import Control.Applicative
 
   take' :: Int -> List a -> List a
-  take' = undefined
+  take' n Nil = Nil
+  take' n (Cons a list) = Cons a (take' (n-1) list)
 
   -- ZIPLIST MONOID
 
@@ -34,23 +35,21 @@ module List where
   instance Applicative ZipList' where
 
     pure :: a -> ZipList' a
-    pure a = ZipList' (Cons a Nil)
-
+    pure a = ZipList' $ replicate' 100 a
 
     (<*>) :: ZipList' (a -> b) -> ZipList' a -> ZipList' b
-    (<*>) (ZipList' Nil) (ZipList' list) = ZipList' Nil
-    (<*>) (ZipList' list) (ZipList' Nil) = ZipList' Nil
-    (<*>) (ZipList' (Cons f list)) (ZipList' (Cons a list')) = ZipList' (Cons (f a) (list <*> list'))
+    (<*>) (ZipList' listFs) (ZipList' listAs) = ZipList' $ zip' listFs listAs
 
+  zip' :: List (a->b) -> List a -> List b
+  zip' (Cons f fs) (Cons a as) = Cons (f a) (zip' fs as)
+  zip' Nil _ = Nil
+  zip' _ Nil = Nil
 
+  instance (Arbitrary a) => Arbitrary (ZipList' a) where
+    arbitrary = fmap ZipList' arbitrary
 
-  instance (Arbitrary a) => Arbitrary (ZipList (List a)) where
-    arbitrary = do
-      a <- arbitrary
-      frequency [
-        (1, return (ZipList' Nil)) ,
-        (1, return ZipList' (Cons <$> arbitrary <*> arbitrary))
-        ]
+  replicate' :: Int -> a -> List a
+  replicate' n b = Cons b (replicate' (n-1) b)
 
 {--
 
@@ -119,7 +118,7 @@ Cons 2 (Cons 3 (Cons 2 (Cons 4 Nil)))
 
   exampleList :: List (String, String, String)
   exampleList = Cons testType (Cons testType Nil)
-  
+
 
   main :: IO()
   main = do
