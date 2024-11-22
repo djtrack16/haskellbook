@@ -154,7 +154,7 @@ data Two a b = Two a b
   instance Monoid a => Applicative (Two a) where
 
     liftA2 :: Monoid a => (a1 -> b -> c) -> Two a a1 -> Two a b -> Two a c
-    liftA2 f (Two a b) (Two a' b') = Two a (f b b')
+    liftA2 f (Two a b) (Two a' b') = Two (a <> a') (f b b')
 
     pure :: Monoid a => a1 -> Two a a1
     pure a = Two mempty a
@@ -168,14 +168,114 @@ data Two a b = Two a b
   instance (Eq a, Eq b) => EqProp (Two a b) where
     (=-=) = eq
 
-  testTypeOne = undefined :: (String, String, String)
-  testTypeTwo = undefined :: (String, String, String)
+-- #4
+
+  data Three a b c =
+    Three a b c
+    deriving (Eq, Show)
+
+  instance Functor (Three a b) where
+
+    fmap :: (a2 -> b2) -> Three a1 b1 a2 -> Three a1 b1 b2
+    fmap f (Three a b c) = Three a b (f c)
+  
+  instance (Monoid a, Monoid b) => Applicative (Three a b) where
+    pure :: (Monoid a, Monoid b) => a1 -> Three a b a1
+    pure a = Three mempty mempty a
+
+    liftA2 :: Monoid a => (a1 -> b1 -> c) -> Three a b a1 -> Three a b b1 -> Three a b c
+    liftA2 f (Three a b c') (Three a' b' c'') = Three (a <> a') (b <> b') (f c' c'') 
+  
+  instance (Arbitrary a, Arbitrary b, Arbitrary c) => Arbitrary (Three a b c) where
+    arbitrary = do
+      a <- arbitrary
+      b <- arbitrary
+      c <- arbitrary
+      return (Three a b c)
+
+  instance (Eq a, Eq b, Eq c) => EqProp (Three a b c) where
+    (=-=) = eq
+
+-- #5
+
+  data Three' a b =
+    Three' a b b
+    deriving (Eq, Show)
+
+  instance Functor (Three' a) where
+
+    fmap :: (a2 -> b) -> Three' a1 a2 -> Three' a1 b
+    fmap f (Three' a b b') = Three' a (f b) (f b')
+  
+  instance (Monoid a) => Applicative (Three' a) where
+    pure :: Monoid a => a1 -> Three' a a1
+    pure b = Three' mempty b b
+
+    liftA2 :: Monoid a => (a1 -> b -> c) -> Three' a a1 -> Three' a b -> Three' a c
+    liftA2 f (Three' a b c) (Three' a' b' c') = Three' (a <> a') (f b b') (f c c')
+  
+  instance (Arbitrary a, Arbitrary b) => Arbitrary (Three' a b) where
+    arbitrary = do
+      a <- arbitrary
+      b <- arbitrary
+      return (Three' a b b)
+
+  instance (Eq a, Eq b) => EqProp (Three' a b) where
+    (=-=) = eq
+
+-- #7
+
+  data Four' a b =
+    Four' a a a b
+    deriving (Eq, Show)
+
+  instance Functor (Four' a) where
+    fmap :: (a2 -> b) -> Four' a1 a2 -> Four' a1 b
+    fmap f (Four' x y z b) = Four' x y z (f b)
+
+  
+  instance (Monoid a) => Applicative (Four' a) where
+    pure :: Monoid a => a1 -> Four' a a1
+    pure a = Four' mempty mempty mempty a
+
+    liftA2 :: Monoid a => (a1 -> b -> c) -> Four' a a1 -> Four' a b -> Four' a c
+    liftA2 f (Four' a b c d) (Four' a' b' c' d') = Four' (a <> a') (b <> b') (c <> c') (f d d')
+  instance (Arbitrary a, Arbitrary b) => Arbitrary (Four' a b) where
+    arbitrary = do
+      a <- arbitrary
+      b <- arbitrary
+      return (Four' a a a b)
+
+  instance (Eq a, Eq b) => EqProp (Four' a b) where
+    (=-=) = eq
+
+  testType = undefined :: (String, String, String)
+
+-- COMBINATION REVISIT
+
+
+-- Remember the vowels and stops exercise in folds? Reimplement the combos
+-- function using liftA3 from Control.Applicative.
+  stops, vowels :: String
+  stops = "pbtdkg"
+  vowels = "aeiou"
+
+  combosListComp :: [a] -> [b] -> [c] -> [(a, b, c)]
+  combosListComp xs ys zs = [(x,y,z) | x <- xs, y <- ys, z <- zs]
+  combosLiftA3 = (,,) <$> stops <*> vowels <*> stops
+  combosLiftA3' = liftA3 (,,) stops vowels stops
 
   main :: IO ()
   main = do
     putStrLn "IDENTITY TESTS"
-    quickBatch (applicative (Identity testTypeOne))
+    quickBatch (applicative (Identity testType))
     putStrLn "PAIR TESTS"
-    quickBatch (applicative (Pair testTypeOne testTypeOne))
+    quickBatch (applicative (Pair testType testType))
     putStrLn "TWO TESTS"
-    quickBatch (applicative (Two testTypeOne testTypeTwo))
+    quickBatch (applicative (Two testType testType))
+    putStrLn "THREE TESTS"
+    quickBatch (applicative (Three testType testType testType))
+    putStrLn "THREE' TESTS"
+    quickBatch (applicative (Three' testType testType testType))
+    putStrLn "FOUR' TESTS"
+    quickBatch (applicative (Four' testType testType testType testType))
