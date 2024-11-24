@@ -35,7 +35,7 @@ module List where
   instance Applicative ZipList' where
 
     pure :: a -> ZipList' a
-    pure a = ZipList' $ replicate' 100 a
+    pure a = ZipList' $ replicate' 1000 a
 
     (<*>) :: ZipList' (a -> b) -> ZipList' a -> ZipList' b
     (<*>) (ZipList' listFs) (ZipList' listAs) = ZipList' $ zip' listFs listAs
@@ -49,6 +49,7 @@ module List where
     arbitrary = fmap ZipList' arbitrary
 
   replicate' :: Int -> a -> List a
+  replicate' 0 _ = Nil
   replicate' n b = Cons b (replicate' (n-1) b)
 
 {--
