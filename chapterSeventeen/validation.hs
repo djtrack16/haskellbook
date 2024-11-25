@@ -81,8 +81,6 @@ module Validation where
   instance (Eq a, Eq e) => EqProp (Validation e a) where
     (=-=) = eq
 
-  testType = undefined :: (String, String, String)
-
   main :: IO()
   main = do
     quickBatch (applicative (undefined :: Sum String (Char, Char, Char)))

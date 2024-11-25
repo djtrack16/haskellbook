@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use <$>" #-}
 {-# LANGUAGE MonoLocalBinds #-}
-module List where
+module List (List) where
 
   import Data.Monoid qualified as M
   import Data.Semigroup qualified as S
