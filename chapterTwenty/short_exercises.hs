@@ -8,12 +8,9 @@
 module ShortExercises where
   import Data.Foldable
   import Data.Monoid
-  import Data.Functor
   import Test.Hspec
-  --import Test.Hspec.Checkers
   import Test.QuickCheck
   import Test.QuickCheck.Checkers
-  import Test.QuickCheck.Classes hiding (bind)
 
 -- Implement the functions in terms of foldMap or foldr from Foldable,
 -- then try them out with multiple types that have Foldable instances.
@@ -114,10 +111,12 @@ module ShortExercises where
         length' [] `shouldBe` length []
         length' (Just 2) `shouldBe` length (Just 2)
         length' Nothing `shouldBe` length Nothing
+        fmap length' [Just 1, Just 2, Just 3] `shouldBe` fmap length [Just 1, Just 2, Just 3]
+        fmap length' [Just 1, Just 2, Nothing] `shouldBe` fmap length [Just 1, Just 2, Nothing] 
       it "toList should work" $ do
         toList' [1, 2, 3, 4] `shouldBe` toList [1, 2, 3, 4]
         toList' [] `shouldBe` toList ([] :: [Int])
-        toList' (Just 2) `shouldBe` toList (Just 2)
+        toList' (Just 10) `shouldBe` toList (Just 10)
         toList' Nothing `shouldBe` toList (Nothing :: Maybe Int)
       it "fold should work" $ do
         fold' ["12", "34", "56"] `shouldBe` fold ["12", "34", "56"]

@@ -2,18 +2,16 @@
 {-# HLINT ignore "Use newtype instead of data" #-}
 {-# HLINT ignore "Eta reduce" #-}
 {-# HLINT ignore "Use <$>" #-}
+{-# HLINT ignore "Redundant ==" #-}
 module ChapterExercises where
 
 
   import Data.Foldable
   import Data.Monoid
-  import Data.Functor
   import Test.Hspec
-  --import Test.Hspec.Checkers
   import Test.QuickCheck
   import Test.QuickCheck.Checkers
-  import Test.QuickCheck.Classes hiding (bind)
-  
+
 {--
 Write Foldable instances for the following datatypes.
 1. data Constant a b =
@@ -88,19 +86,18 @@ Four' a b b b
   filterF :: (Applicative f, Foldable f, Monoid (f a)) => (a -> Bool) -> f a -> f a
   filterF predicate = foldMap (\a -> if predicate a then pure a else mempty)
 
-  testType = undefined :: (String, String, String)
-
-  instance Arbitrary a => Arbitrary (Constant a b) where
-    arbitrary = do
-      a <- arbitrary
-      return (Constant a)
-
-  instance (Eq a, Eq b) => EqProp (Constant a b) where
-    (=-=) = eq
-
   main :: IO()
-  main = do
-    putStrLn  ""
-   -- quickBatch (foldable (
-   --   undefined :: Two (String, String, String, String, String) (String, String, String, Int, Int))
-   --   )
+  main = hspec runTests
+
+  runTests :: SpecWith()
+  runTests = do
+    describe "Built-in functions" $ do
+      it "filterF should work" $ do
+        filterF odd [1..5] `shouldBe` [1,3,5]
+        filterF (True ==) [True, False, True, False] `shouldBe` [True, True]
+        filterF (elem 1) [[1,2],[3,4],[5,6]] `shouldBe` [[1,2]]
+        filterF null [Left 5] `shouldBe` ([Left 5] :: [Either Int Int])
+        filterF null [Right 5] `shouldBe` ([] :: [Either Int Int])
+        filterF null [Nothing] `shouldBe` ([Nothing] :: [Maybe Int])
+        filterF null [Just 1] `shouldBe` ([] :: [Maybe Int])
+        
