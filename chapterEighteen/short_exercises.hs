@@ -13,13 +13,11 @@ module ShortExercises where
   bind :: Monad m => (a -> m b) -> m a -> m b
   bind f as = join $ fmap f as
 
-  join' :: Monad m => m (m a) -> m a
-  join' = undefined
+  --join' :: Monad m => m (m a) -> m a
+  --join' = undefined
 
-  fmap' :: Functor f => (a -> f b) -> f a -> f b
-  fmap' = undefined
-
-  -- f =<< as
+  --fmap' :: Functor f => (a -> f b) -> f a -> f b
+  --fmap' = undefined
 
 -- Implement the Either Monad
 

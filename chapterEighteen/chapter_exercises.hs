@@ -1,4 +1,6 @@
 --{-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use <$>" #-}
 module ChapterExercises where
 
   import Control.Monad
@@ -8,8 +10,7 @@ module ChapterExercises where
   import Test.QuickCheck.Checkers
   import Test.QuickCheck
   import Test.QuickCheck.Classes
-  --import ChapterSeventeen.List qualified as L
-  
+
 -- 1. Welcome to the Nope Monad, where nothing happens and no- body cares.
 
   data Nope a = NopeDotJpg deriving (Eq, Show)
@@ -22,7 +23,7 @@ module ChapterExercises where
 
   instance Applicative Nope where
     pure :: a -> Nope a
-    pure = undefined
+    pure a = NopeDotJpg
 
     (<*>) :: Nope (a -> b) -> Nope a -> Nope b
     (<*>) _ _ = NopeDotJpg
@@ -34,8 +35,8 @@ module ChapterExercises where
     (>>=) :: Nope a -> (a -> Nope b) -> Nope b
     (>>=) _ _ = NopeDotJpg
 
-  --instance Arbitrary a => (Nope a) where
-  --  fmap NopeDotJpg arbitrary
+  instance Arbitrary (Nope a) where
+    arbitrary = return NopeDotJpg
 
   instance (Eq a) => EqProp (Nope a) where
     (=-=) = eq
@@ -108,7 +109,8 @@ module ChapterExercises where
 
   instance Arbitrary a => Arbitrary (Identity a) where
     arbitrary = do
-      Identity <$> arbitrary
+      a <- arbitrary
+      return (Identity a)
 
 -- 4. This one should be easier than the Applicative instance was. Remember to use the Functor that Monad requires, then see where the chips fall.
 
@@ -162,7 +164,7 @@ module ChapterExercises where
   main = do
     --let var = ZipList'
     --let var = (Char, Char, Char)
-    --quickBatch (monad (undefined :: Nope (Char, Char, Char)))
+    quickBatch (monad (undefined :: Nope (Char, Char, Char)))
     quickBatch (monad (undefined :: PhhhbbtttEither (Char, Char, Char) (Char, Char, Char)))
     quickBatch (monad (undefined :: Identity (Char, Char, Char)))
     quickBatch (monad exampleList)
