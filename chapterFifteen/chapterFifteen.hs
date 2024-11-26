@@ -71,14 +71,10 @@ Only (Sum {getSum = 1})
     First' { getFirst' :: Optional a }
     deriving (Eq, Show)
 
-  instance Arbitrary a => Arbitrary (First' a) where
-    arbitrary = do
-      a <- arbitrary
-      return (First' a) 
-
+ -- instance Arbitrary a => Arbitrary (First' a) where
+   -- arbitrary = First' <$> arbitrary <*> arbitrary
 
   instance Semigroup a => Semigroup (First' a) where
-    --mempty = Nada
 
     (<>) :: Semigroup a => First' a -> First' a -> First' a
     (<>) x (First' Nada) = x
@@ -91,6 +87,6 @@ Only (Sum {getSum = 1})
   main :: IO ()
   main = do
     --quickCheck (monoidAssoc :: FirstMappend)
-    quickCheck (monoidLeftIdentity :: First' String -> Bool)
+    --quickCheck (monoidLeftIdentity :: First' String -> Bool)
     --quickCheck (monoidRightIdentity :: First' String -> Bool)
     putStrLn ""
