@@ -60,9 +60,11 @@ flipType :: (Monad m) => [m a] -> m [a]
                      rest  = meh as f
                  in first >> rest
 
-
 -- 6. Hint: reuse “meh”
   flipType :: Monad m => [m a] -> m [a]
-  flipType mas = undefined --(fmap . fmap) (+1) mas
-
-  --(>=>) :: Monad m => (a -> m b) -> (b -> m c) -> a -> m c
+  flipType = foldr fseq (return []) where
+             fseq ma init = fmap (:[]) ma >> init
+  
+  -- recursive version -- also typechecks!
+  -- flipType []       = return []
+  -- flipType (ma:mas) = fmap (:[]) ma >> flipType mas
