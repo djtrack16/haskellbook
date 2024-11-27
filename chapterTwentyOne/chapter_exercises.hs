@@ -110,30 +110,37 @@ module ChapterExercises where
 
   instance Foldable List where
 
+    foldMap :: Monoid m => (a -> m) -> List a -> m
+    foldMap f (Cons a list) = f a <> foldMap f list
+    foldMap _ Nil           = mempty
+
     foldr :: (a -> b -> b) -> b -> List a -> b
     foldr f b (Cons a list) = foldr f (f a b) list
     foldr _ b Nil           = b
 
+
   instance Traversable List where
 
     traverse :: Applicative f => (a -> f b) -> List a -> f (List b)
-    traverse f (Cons a list) = first *> rest where
+    traverse f (Cons a list) = first <*> rest where
                                first = fmap Cons (f a)
                                rest  = traverse f list
     traverse _ Nil           = pure Nil
-
-  --exampleList :: List (String, String, String)
-  --exampleList = Cons (Appl, Appl, String, String) (Cons (Appl, Appl, String, String) Nil)
 
   instance (Arbitrary a) => Arbitrary (List a) where
     arbitrary :: Arbitrary a => Gen (List a)
     arbitrary = oneof [
         return Nil,
-        Cons <$> arbitrary <*> arbitrary
+        liftA2 Cons arbitrary arbitrary
       ]
 
   instance Eq a => EqProp (List a) where
-    (=-=) = eq
+    xs =-= ys = take' 3000 xs `eq` take' 3000 ys
+
+  take' :: Int -> List a -> List a
+  take' n Nil = Nil
+  take' n (Cons a list) = Cons a (take' (n-1) list)
+
 
   data Three a b c =
     Three a b c
@@ -176,7 +183,7 @@ module ChapterExercises where
 
   instance Foldable (Three' a) where
     foldMap :: Monoid m => (a2 -> m) -> Three' a1 a2 -> m
-    foldMap f (Three' a b _) = f b
+    foldMap f (Three' a b b') = f b <> f b'
 
     foldr :: (a2 -> b -> b) -> b -> Three' a1 a2 -> b
     foldr f b (Three' a b' _) = f b' b
@@ -201,20 +208,34 @@ module ChapterExercises where
 
   -- to make it easier, we'll give you the constraints.
 
-  instance Functor (S n) where
+  instance Functor n => Functor (S n) where
     fmap :: (a -> b) -> S n a -> S n b
-    fmap f (S n a) = undefined--S n b where b = f a
+    fmap f (S n a) = S n' b where
+                     b  = f a
+                     n' = fmap f n
 
-  instance Foldable (S n) where
-    foldr :: (a -> b -> b) -> b -> S n a -> b
-    foldr f b (S n a) = f a b
+  instance Foldable n => Foldable (S n) where
+
+    foldMap :: (Foldable n, Monoid m) => (a -> m) -> S n a -> m
+    foldMap f (S n a) = foldMap f n <> f a
+
+    foldr :: Foldable n => (a -> b -> b) -> b -> S n a -> b
+    foldr f b (S n a) = f a (foldr f b n)
 
   instance Traversable n => Traversable (S n) where
     traverse :: (Traversable n, Applicative f) => (a -> f b) -> S n a -> f (S n b)
-    traverse f (S n a) = undefined-- S (n <*> (f a)) <$> f a
+    traverse f (S n a) = liftA2 S (traverse f n) b where
+                         b = f a
 
-    sequenceA :: (Traversable n, Applicative f) => S n (f a) -> f (S n a)
-    sequenceA = undefined
+
+
+  instance (Arbitrary a, Arbitrary (n a)) => Arbitrary (S n a) where
+    arbitrary = do
+      liftA2 S arbitrary arbitrary
+
+
+  instance (Eq a, Eq (n a)) => EqProp (S n a) where
+    (=-=) = eq
 
   
   data Tree a =
@@ -233,7 +254,7 @@ module ChapterExercises where
                             right = fmap f t2
   
   instance Foldable Tree where
-    -- foldMap is a bit easier and looks more natural, -- but you can do foldr too for extra credit.
+    --foldMap is a bit easier and looks more natural, -- but you can do foldr too for extra credit.
     foldMap :: Monoid m => (a -> m) -> Tree a -> m
     foldMap f Empty = mempty
     foldMap f (Leaf a) = f a
@@ -242,9 +263,9 @@ module ChapterExercises where
     foldr :: (a -> b -> b) -> b -> Tree a -> b
     foldr _ b Empty = b
     foldr f b (Leaf a) = f a b
-    foldr f b (Node left a right) = foldr f foldedRightTreeResult left where
-      acc = f a b
-      foldedRightTreeResult = foldr f acc right
+    foldr f b (Node left a right) = f a (foldr f foldedRightTreeResult left) where
+      --acc = f a b
+      foldedRightTreeResult = foldr f b right
   
   instance Traversable Tree where
 
@@ -273,16 +294,12 @@ module ChapterExercises where
 
   testType = undefined :: (Appl, Appl, String, String)
 
-  --testType :: (Appl, Appl, String, String) 
-
   main = do
     quickBatch (traversable (Identity testType))
     quickBatch (traversable (undefined :: Constant (Appl, Appl, String, String) (Appl, Appl, String, String)))
     quickBatch (traversable (undefined :: Optional (Appl, Appl, String, String)))
-    --quickBatch (traversable exampleList)
+    quickBatch (traversable exampleList)
     quickBatch (traversable (undefined :: Three (Appl, Appl, String, String) (Appl, Appl, String, String) (Appl, Appl, String, String)))
     quickBatch (traversable (undefined :: Tree (Appl, Appl, String, String)))
     quickBatch (traversable (undefined :: Three' (Appl, Appl, String, String) (Appl, Appl, String, String)))
-
-
-    
+    quickBatch (traversable (undefined :: S Maybe (Appl, Appl, String, String)))
